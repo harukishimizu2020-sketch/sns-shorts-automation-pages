@@ -171,7 +171,8 @@ function drawBikeRear(c, o) {
   // ライダー
   const jk = S(o.jacket || '#2a5a6a'), jn = S(o.jeans || '#2b3b6b');
   // 脚
-  for (const s of [-1, 1]) { c.strokeStyle = jn; c.lineWidth = 40; c.beginPath(); c.moveTo(s * 40, -300); c.lineTo(s * 78, -216); c.stroke(); c.lineWidth = 32; c.beginPath(); c.moveTo(s * 78, -216); c.lineTo(s * 74, -128); c.stroke(); c.fillStyle = S('#2a1a12'); rr(c, s * 74 - 20, -136, 40, 34, 8); c.fill(); }
+  for (const s of [-1, 1]) { if (o.footDown && s < 0) { c.strokeStyle = jn; c.lineWidth = 40; c.beginPath(); c.moveTo(-40, -300); c.lineTo(-96, -196); c.stroke(); c.lineWidth = 32; c.beginPath(); c.moveTo(-96, -196); c.lineTo(-116, -40); c.stroke(); c.fillStyle = S('#2a1a12'); rr(c, -142, -40, 54, 40, 8); c.fill(); continue; }
+    c.strokeStyle = jn; c.lineWidth = 40; c.beginPath(); c.moveTo(s * 40, -300); c.lineTo(s * 78, -216); c.stroke(); c.lineWidth = 32; c.beginPath(); c.moveTo(s * 78, -216); c.lineTo(s * 74, -128); c.stroke(); c.fillStyle = S('#2a1a12'); rr(c, s * 74 - 20, -136, 40, 34, 8); c.fill(); }
   // ハンドル・ミラー
   c.strokeStyle = S('#aab4d0'); c.lineWidth = 7; c.beginPath(); c.moveTo(-150, -392); c.lineTo(150, -392); c.stroke();
   for (const s of [-1, 1]) { c.lineWidth = 4; c.beginPath(); c.moveTo(s * 128, -392); c.lineTo(s * 150, -452); c.stroke(); c.fillStyle = S('#dfe6fa'); c.beginPath(); c.ellipse(s * 154, -462, 24, 15, 0, 0, TAU); c.fill(); if (!sil) { c.fillStyle = o.mirror || '#ffb070'; c.beginPath(); c.ellipse(s * 154, -462, 19, 11, 0, 0, TAU); c.fill(); } }
@@ -217,3 +218,33 @@ function vtextStroke(c, ch, x, y, size) {
   const put = (dx, dy, rot) => { c.save(); c.translate(x + dx, y + dy); if (rot) c.rotate(Math.PI / 2); c.strokeText(ch, 0, 0); c.fillText(ch, 0, 0); c.restore(); };
   if (ch === ' ') return; if (ch === 'ー' || ch === '…') put(0, 0, true); else if (ch === '、' || ch === '。') put(size * .62, -size * .58); else put(0, 0);
 }
+
+// ---------- 画風フィルタ(墨線+網点トーン) ----------
+// 色の境界を検出して墨線を引き、暗部に45度の網点を打つ。o:{ink:[r,g,b], th, gain, step, strength, period, toneHi, toneLo, tone}
+function inkFilter(c, x0, y0, w, h, o) {
+  const img = c.getImageData(x0, y0, w, h), d = img.data, src = new Uint8ClampedArray(d);
+  const ink = o.ink || [26, 20, 32], th = o.th == null ? 36 : o.th, gain = o.gain || .02, st = o.step || 2, str = o.strength == null ? 1 : o.strength;
+  const P = o.period || 0, hi = o.toneHi || .6, lo = o.toneLo || .15, tone = o.tone == null ? .7 : o.tone, s4 = st * 4, row = w * 4 * st;
+  for (let y = 0; y < h; y++) {
+    const ya = y + st < h ? row : 0, yb = y - st >= 0 ? row : 0;
+    for (let x = 0; x < w; x++) {
+      const i = (y * w + x) * 4, a = x + st < w ? s4 : 0, b = x - st >= 0 ? s4 : 0;
+      let r = src[i], g = src[i + 1], bl = src[i + 2];
+      const dsum = Math.abs(src[i + a] - src[i - b]) + Math.abs(src[i + a + 1] - src[i - b + 1]) + Math.abs(src[i + a + 2] - src[i - b + 2]) + Math.abs(src[i + ya] - src[i - yb]) + Math.abs(src[i + ya + 1] - src[i - yb + 1]) + Math.abs(src[i + ya + 2] - src[i - yb + 2]);
+      if (P) { const lum = (r * .3 + g * .59 + bl * .11) / 255; if (lum < hi) { const u = (x + x0 + y + y0) * .7071, v = (x + x0 - y - y0) * .7071, cu = u - Math.floor(u / P) * P - P / 2, cv = v - Math.floor(v / P) * P - P / 2; let k = (hi - lum) / (hi - lo); if (k > 1) k = 1; const rad = P * .62 * Math.sqrt(k); if (cu * cu + cv * cv < rad * rad * .25 * 1.6) { r *= tone; g *= tone; bl *= tone; } } }
+      let e = (dsum - th) * gain; if (e > 0) { if (e > 1) e = 1; e *= str; r += (ink[0] - r) * e; g += (ink[1] - g) * e; bl += (ink[2] - bl) * e; }
+      d[i] = r; d[i + 1] = g; d[i + 2] = bl;
+    }
+  }
+  c.putImageData(img, x0, y0);
+}
+// 和紙の質感(乗算で重ねる)
+function makePaper(seed, base) {
+  const c0 = mk(W, H), c = c0.getContext('2d'), r = rng(seed); c.fillStyle = base || '#f3ead8'; c.fillRect(0, 0, W, H);
+  const img = c.getImageData(0, 0, W, H), d = img.data; for (let i = 0; i < d.length; i += 4) { const n = (r() - .5) * 22; d[i] += n; d[i + 1] += n; d[i + 2] += n * 1.1; } c.putImageData(img, 0, 0);
+  c.strokeStyle = 'rgba(120,90,60,.10)'; c.lineWidth = 1; for (let i = 0; i < 900; i++) { const x = r() * W, y = r() * H, a = r() * TAU, l = 10 + r() * 50; c.beginPath(); c.moveTo(x, y); c.quadraticCurveTo(x + Math.cos(a) * l * .5 + (r() - .5) * 14, y + Math.sin(a) * l * .5 + (r() - .5) * 14, x + Math.cos(a) * l, y + Math.sin(a) * l); c.stroke(); }
+  return c0;
+}
+function hexA(h, a) { const n = parseInt(h.slice(1), 16); return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`; }
+// 複数キーの色補間 stops:[[p,'#hex'],...]
+function ramp(p, stops) { let i = 0; while (i < stops.length - 2 && p > stops[i + 1][0]) i++; const [p0, a] = stops[i], [p1, b] = stops[i + 1]; return mixHex(a, b, clamp((p - p0) / (p1 - p0))); }

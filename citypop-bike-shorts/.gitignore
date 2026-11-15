@@ -3,3 +3,4 @@ out/
 audio/*.wav
 audio/*.png
 fonts/*.ttf
+__pycache__/
