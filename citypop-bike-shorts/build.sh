@@ -21,6 +21,6 @@ case $w in
   d2) VF="noise=alls=3:allf=t,format=yuv420p"; NAME=twilight_bay;;
   d3) VF="chromashift=cbh=-2:crh=2,gblur=sigma=0.7,noise=alls=9:allf=t,eq=saturation=1.08,format=yuv420p"; NAME=midnight_touge;;
 esac
-ffmpeg -y -loglevel error -f concat -safe 0 -i out/chunks/${w}_list.txt -i audio/track_$w.wav -filter_complex "[0:v]$VF[v]" -map "[v]" -map 1:a \
+ffmpeg -y -loglevel error -f concat -safe 0 -i out/chunks/${w}_list.txt -i audio/track_$w.wav -filter_complex "[0:v]$VF[v]" -map "[v]" -map 1:a -af "alimiter=limit=0.71:attack=3:release=60:level=false" \
   -c:v libx264 -preset slow -crf 20 -maxrate 9M -bufsize 18M -profile:v high -level 4.2 -r 30 -movflags +faststart -c:a aac -b:a 256k -ar 44100 -t 60 out/${NAME}.mp4
 ffprobe -v error -show_entries format=duration,size:stream=codec_name,width,height,r_frame_rate,nb_frames -of default=nw=1 out/${NAME}.mp4
