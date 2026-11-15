@@ -248,3 +248,124 @@ function makePaper(seed, base) {
 function hexA(h, a) { const n = parseInt(h.slice(1), 16); return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`; }
 // 複数キーの色補間 stops:[[p,'#hex'],...]
 function ramp(p, stops) { let i = 0; while (i < stops.length - 2 && p > stops[i + 1][0]) i++; const [p0, a] = stops[i], [p1, b] = stops[i + 1]; return mixHex(a, b, clamp((p - p0) / (p1 - p0))); }
+
+// ---------- レーサーレプリカ(赤白フルカウル・2スト250風)。原点=後輪接地点、右向き。ロゴは描かない ----------
+const RR = { R: 60, WB: 290 };
+function drawRacerSide(c, o) {
+  const R = RR.R, WB = RR.WB, rot = o.rot || 0, t = o.t || 0, bob = o.bob || 0;
+  const red = o.red || '#e2342b', white = o.white || '#f7f4ec', navy = o.navy || '#1c2550', sh = o.shade || 'rgba(40,40,90,.22)';
+  const suit = o.suit || '#f4f1e8', suit2 = o.suit2 || '#2456a8', hel = o.helmet || '#f7f4ec';
+  c.save(); c.lineCap = 'round'; c.lineJoin = 'round';
+  const wheel = (cx, front) => {
+    c.save(); c.translate(cx, -R);
+    c.fillStyle = '#17171f'; c.beginPath(); c.arc(0, 0, R, 0, TAU); c.fill();
+    c.fillStyle = '#2a2a36'; c.beginPath(); c.arc(0, 0, R - 13, 0, TAU); c.fill();
+    c.strokeStyle = red; c.lineWidth = 7; c.beginPath(); c.arc(0, 0, R - 16, 0, TAU); c.stroke();
+    if (front) { c.strokeStyle = '#d9b24a'; c.lineWidth = 9; c.beginPath(); c.arc(0, 0, 27, 0, TAU); c.stroke(); c.fillStyle = '#2a2a36'; for (let i = 0; i < 10; i++) { const a = rot + i * TAU / 10; c.beginPath(); c.arc(Math.cos(a) * 27, Math.sin(a) * 27, 2.2, 0, TAU); c.fill(); } }
+    else { c.strokeStyle = '#9aa0b0'; c.lineWidth = 6; c.beginPath(); c.arc(0, 0, 20, 0, TAU); c.stroke(); }
+    c.strokeStyle = red; c.lineWidth = 11; for (let i = 0; i < 3; i++) { const a = rot + i * TAU / 3; c.beginPath(); c.moveTo(Math.cos(a) * 8, Math.sin(a) * 8); c.lineTo(Math.cos(a + .18) * (R - 18), Math.sin(a + .18) * (R - 18)); c.stroke(); }
+    c.fillStyle = red; c.beginPath(); c.arc(0, 0, 12, 0, TAU); c.fill(); c.fillStyle = '#c9ccd6'; c.beginPath(); c.arc(0, 0, 5, 0, TAU); c.fill();
+    c.strokeStyle = 'rgba(255,255,255,.16)'; c.lineWidth = 4; c.beginPath(); c.arc(0, 0, R - 5, -2.5, -1.3); c.stroke();
+    c.restore();
+  };
+  wheel(0, false); wheel(WB, true);
+  c.translate(0, bob);
+  // スイングアーム・チェーン
+  c.strokeStyle = '#b9bdc9'; c.lineWidth = 12; c.beginPath(); c.moveTo(118, -90); c.lineTo(0, -R - bob); c.stroke();
+  c.strokeStyle = '#3a3a46'; c.lineWidth = 3; c.beginPath(); c.moveTo(112, -76); c.lineTo(4, -48 - bob); c.stroke();
+  // チャンバーとサイレンサー
+  c.fillStyle = '#1b1b24'; c.beginPath(); c.moveTo(214, -58); c.quadraticCurveTo(160, -34, 96, -52); c.lineTo(60, -70); c.lineTo(66, -84); c.quadraticCurveTo(150, -70, 212, -78); c.closePath(); c.fill();
+  c.strokeStyle = '#1b1b24'; c.lineWidth = 20; c.beginPath(); c.moveTo(66, -76); c.lineTo(-30, -112); c.stroke(); c.strokeStyle = '#c9ccd6'; c.lineWidth = 12; c.beginPath(); c.moveTo(-30, -112); c.lineTo(-40, -116); c.stroke();
+  c.strokeStyle = 'rgba(255,255,255,.14)'; c.lineWidth = 4; c.beginPath(); c.moveTo(56, -84); c.lineTo(-24, -114); c.stroke();
+  // フロントフォーク・フェンダー・キャリパー
+  c.strokeStyle = '#c9ccd6'; c.lineWidth = 11; c.beginPath(); c.moveTo(254, -176); c.lineTo(WB, -R - bob); c.stroke();
+  c.strokeStyle = '#d9b24a'; c.lineWidth = 12; c.beginPath(); c.moveTo(276, -104); c.lineTo(WB - 2, -R - 6 - bob); c.stroke();
+  c.fillStyle = red; c.beginPath(); c.arc(WB, -R - bob, R + 10, -2.75, -1.0); c.arc(WB, -R - bob, R + 2, -1.0, -2.75, true); c.closePath(); c.fill();
+  c.fillStyle = '#3a3a46'; rr(c, WB - 26, -R - 46 - bob, 20, 30, 5); c.fill();
+  // アルミフレーム
+  c.fillStyle = '#c3c7d2'; c.beginPath(); c.moveTo(252, -190); c.lineTo(262, -168); c.lineTo(132, -84); c.lineTo(104, -84); c.lineTo(108, -112); c.closePath(); c.fill();
+  c.fillStyle = 'rgba(255,255,255,.4)'; c.beginPath(); c.moveTo(250, -186); c.lineTo(254, -178); c.lineTo(116, -100); c.lineTo(112, -110); c.closePath(); c.fill();
+  // ステップ
+  c.fillStyle = '#b9bdc9'; c.beginPath(); c.moveTo(100, -120); c.lineTo(118, -116); c.lineTo(104, -86); c.lineTo(88, -90); c.closePath(); c.fill();
+  // テールカウル
+  c.fillStyle = white; c.beginPath(); c.moveTo(-44, -192); c.lineTo(58, -196); c.lineTo(96, -176); c.lineTo(140, -152); c.lineTo(112, -134); c.lineTo(36, -138); c.lineTo(-22, -166); c.closePath(); c.fill();
+  c.fillStyle = red; for (let i = 0; i < 3; i++) { const x = -18 + i * 32; c.beginPath(); c.moveTo(x, -186); c.lineTo(x + 22, -187); c.lineTo(x + 34, -152); c.lineTo(x + 12, -154); c.closePath(); c.fill(); }
+  c.fillStyle = sh; c.beginPath(); c.moveTo(-22, -166); c.lineTo(36, -138); c.lineTo(112, -134); c.lineTo(126, -143); c.lineTo(40, -150); c.lineTo(-30, -176); c.closePath(); c.fill();
+  c.fillStyle = '#e02020'; c.beginPath(); c.moveTo(-46, -192); c.lineTo(-36, -193); c.lineTo(-22, -168); c.lineTo(-30, -170); c.closePath(); c.fill();
+  c.fillStyle = '#17171f'; c.beginPath(); c.moveTo(-10, -160); c.lineTo(30, -140); c.lineTo(8, -128); c.lineTo(-34, -134); c.closePath(); c.fill();
+  // シート
+  c.fillStyle = navy; c.beginPath(); c.moveTo(56, -196); c.quadraticCurveTo(80, -176, 142, -162); c.lineTo(140, -150); c.lineTo(96, -174); c.lineTo(58, -190); c.closePath(); c.fill();
+  // タンク
+  c.fillStyle = white; c.beginPath(); c.moveTo(134, -152); c.quadraticCurveTo(142, -190, 190, -206); c.quadraticCurveTo(232, -210, 246, -192); c.lineTo(232, -160); c.lineTo(180, -146); c.closePath(); c.fill();
+  c.fillStyle = red; c.beginPath(); c.moveTo(150, -180); c.quadraticCurveTo(170, -200, 198, -204); c.lineTo(214, -186); c.lineTo(168, -170); c.closePath(); c.fill();
+  c.fillStyle = sh; c.beginPath(); c.moveTo(134, -152); c.lineTo(180, -146); c.lineTo(232, -160); c.lineTo(238, -172); c.lineTo(182, -158); c.lineTo(138, -164); c.closePath(); c.fill();
+  // カウル(下)
+  c.fillStyle = white; c.beginPath(); c.moveTo(236, -196); c.lineTo(300, -204); c.quadraticCurveTo(314, -192, 308, -172); c.quadraticCurveTo(268, -150, 262, -104); c.lineTo(254, -60); c.quadraticCurveTo(246, -34, 222, -32); c.lineTo(126, -32); c.quadraticCurveTo(104, -40, 108, -66); c.lineTo(124, -100); c.lineTo(168, -128); c.lineTo(206, -150); c.closePath(); c.fill();
+  c.fillStyle = red; c.beginPath(); c.moveTo(150, -116); c.lineTo(214, -150); c.lineTo(250, -132); c.lineTo(244, -76); c.lineTo(226, -48); c.lineTo(150, -52); c.quadraticCurveTo(132, -84, 150, -116); c.closePath(); c.fill();
+  c.fillStyle = white; c.beginPath(); c.moveTo(168, -100); c.lineTo(236, -112); c.lineTo(232, -92); c.lineTo(166, -80); c.closePath(); c.fill();
+  c.fillStyle = red; c.beginPath(); c.moveTo(262, -196); c.lineTo(300, -202); c.quadraticCurveTo(310, -192, 306, -176); c.lineTo(276, -164); c.closePath(); c.fill();
+  c.fillStyle = sh; c.beginPath(); c.moveTo(126, -32); c.lineTo(222, -32); c.quadraticCurveTo(246, -34, 254, -60); c.lineTo(240, -52); c.lineTo(132, -46); c.closePath(); c.fill();
+  c.fillStyle = '#17171f'; c.beginPath(); c.moveTo(188, -144); c.lineTo(204, -150); c.lineTo(214, -142); c.lineTo(196, -134); c.closePath(); c.fill();
+  // ヘッドライト・スクリーン・ミラー・ウインカー
+  c.fillStyle = o.lightOn ? '#fff8d0' : '#dfe6f0'; c.beginPath(); c.moveTo(302, -202); c.quadraticCurveTo(316, -192, 310, -176); c.lineTo(302, -178); c.closePath(); c.fill();
+  c.fillStyle = 'rgba(40,50,80,.72)'; c.beginPath(); c.moveTo(238, -198); c.quadraticCurveTo(252, -248, 274, -246); c.lineTo(300, -206); c.closePath(); c.fill();
+  c.fillStyle = 'rgba(255,255,255,.35)'; c.beginPath(); c.moveTo(254, -232); c.quadraticCurveTo(264, -244, 274, -242); c.lineTo(286, -224); c.closePath(); c.fill();
+  c.strokeStyle = '#17171f'; c.lineWidth = 4; c.beginPath(); c.moveTo(262, -214); c.lineTo(272, -246); c.stroke(); c.fillStyle = white; c.beginPath(); c.ellipse(276, -252, 15, 9, -.2, 0, TAU); c.fill();
+  c.fillStyle = '#f0a020'; c.beginPath(); c.ellipse(288, -172, 9, 6, -.5, 0, TAU); c.fill(); c.beginPath(); c.ellipse(-2, -150, 7, 5, 0, 0, TAU); c.fill();
+  // ----- ライダー(前傾) -----
+  if (o.rider !== false) {
+    const lean = Math.sin(t * 1.5) * 1.5; c.save(); c.translate(0, lean * .4);
+    c.strokeStyle = suit; c.lineWidth = 36; c.beginPath(); c.moveTo(92, -186); c.lineTo(182, -168); c.stroke();          // 太もも
+    c.strokeStyle = suit2; c.lineWidth = 10; c.beginPath(); c.moveTo(96, -198); c.lineTo(180, -182); c.stroke();
+    c.strokeStyle = suit; c.lineWidth = 28; c.beginPath(); c.moveTo(182, -164); c.lineTo(118, -110); c.stroke();        // すね
+    c.fillStyle = '#17171f'; c.beginPath(); c.moveTo(100, -122); c.lineTo(132, -112); c.lineTo(124, -94); c.lineTo(88, -98); c.closePath(); c.fill();
+    c.fillStyle = suit2; c.beginPath(); c.arc(186, -166, 10, 0, TAU); c.fill();
+    c.fillStyle = suit; c.beginPath(); c.moveTo(66, -184); c.quadraticCurveTo(78, -242, 150, -262); c.quadraticCurveTo(196, -268, 214, -244); c.quadraticCurveTo(176, -214, 128, -176); c.closePath(); c.fill();   // 胴
+    c.fillStyle = suit2; c.beginPath(); c.moveTo(70, -196); c.quadraticCurveTo(84, -238, 140, -258); c.lineTo(146, -246); c.quadraticCurveTo(100, -228, 86, -190); c.closePath(); c.fill();
+    c.fillStyle = sh; c.beginPath(); c.moveTo(66, -184); c.lineTo(128, -176); c.quadraticCurveTo(176, -214, 214, -244); c.lineTo(206, -236); c.quadraticCurveTo(160, -206, 124, -188); c.closePath(); c.fill();
+    c.strokeStyle = suit; c.lineWidth = 27; c.beginPath(); c.moveTo(190, -246); c.lineTo(212, -204); c.stroke(); c.lineWidth = 22; c.beginPath(); c.moveTo(212, -204); c.lineTo(240, -204); c.stroke();   // 腕
+    c.fillStyle = suit2; c.beginPath(); c.arc(212, -203, 8, 0, TAU); c.fill(); c.fillStyle = '#17171f'; c.beginPath(); c.arc(244, -204, 11, 0, TAU); c.fill();
+    // フルフェイス
+    c.save(); c.translate(226, -262); c.rotate(.28);
+    c.fillStyle = hel; c.beginPath(); c.moveTo(-34, 4); c.quadraticCurveTo(-36, -34, 0, -36); c.quadraticCurveTo(36, -34, 38, 2); c.quadraticCurveTo(36, 30, 10, 32); c.lineTo(-22, 30); c.quadraticCurveTo(-34, 22, -34, 4); c.closePath(); c.fill();
+    c.fillStyle = o.helA || '#2456a8'; c.beginPath(); c.moveTo(-34, -4); c.quadraticCurveTo(-30, -30, -4, -35); c.lineTo(2, -24); c.quadraticCurveTo(-18, -18, -24, 4); c.closePath(); c.fill();
+    c.fillStyle = o.helB || '#f2c230'; c.beginPath(); c.moveTo(-22, 6); c.quadraticCurveTo(-16, -14, 4, -20); c.lineTo(8, -13); c.quadraticCurveTo(-8, -8, -13, 8); c.closePath(); c.fill();
+    c.fillStyle = '#141826'; c.beginPath(); c.moveTo(6, -14); c.quadraticCurveTo(30, -18, 37, -2); c.quadraticCurveTo(34, 8, 12, 8); c.quadraticCurveTo(4, 0, 6, -14); c.closePath(); c.fill();
+    c.fillStyle = 'rgba(140,220,255,.55)'; c.beginPath(); c.moveTo(14, -10); c.quadraticCurveTo(26, -13, 32, -5); c.lineTo(20, -3); c.closePath(); c.fill();
+    c.fillStyle = sh; c.beginPath(); c.moveTo(-22, 30); c.lineTo(10, 32); c.quadraticCurveTo(36, 30, 38, 2); c.quadraticCurveTo(30, 22, 8, 24); c.lineTo(-26, 22); c.closePath(); c.fill();
+    c.restore(); c.restore();
+  }
+  c.restore();
+}
+// 後ろ姿(伏せたライダー)。原点=後輪接地点
+function drawRacerRear(c, o) {
+  const red = o.red || '#e2342b', white = o.white || '#f7f4ec', navy = '#1c2550', suit = o.suit || '#f4f1e8', suit2 = o.suit2 || '#2456a8', sh = o.shade || 'rgba(40,40,90,.24)', t = o.t || 0;
+  c.save(); c.lineCap = 'round'; c.lineJoin = 'round';
+  c.fillStyle = '#15151d'; rr(c, -36, -150, 72, 150, 30); c.fill();
+  c.strokeStyle = 'rgba(255,255,255,.10)'; c.lineWidth = 3; for (let i = 0; i < 9; i++) { const y = -142 + mod(i * 17 + t * 420, 150); c.beginPath(); c.moveTo(-26, y); c.lineTo(26, y - 5); c.stroke(); }
+  c.fillStyle = '#17171f'; rr(c, -30, -206, 60, 66, 8); c.fill(); c.fillStyle = '#f4f1e4'; rr(c, -26, -182, 52, 30, 4); c.fill();
+  for (const s of [-1, 1]) { c.fillStyle = '#1b1b24'; c.beginPath(); c.ellipse(s * 62, -176, 17, 19, 0, 0, TAU); c.fill(); c.fillStyle = '#c9ccd6'; c.beginPath(); c.ellipse(s * 62, -176, 10, 11, 0, 0, TAU); c.fill(); c.fillStyle = '#0c0c12'; c.beginPath(); c.ellipse(s * 62, -176, 6, 7, 0, 0, TAU); c.fill(); }
+  // 脚(膝を張る)
+  for (const s of [-1, 1]) { c.strokeStyle = suit; c.lineWidth = 42; c.beginPath(); c.moveTo(s * 40, -300); c.lineTo(s * 86, -246); c.stroke(); c.lineWidth = 32; c.beginPath(); c.moveTo(s * 86, -246); c.lineTo(s * 70, -168); c.stroke(); c.fillStyle = suit2; c.beginPath(); c.arc(s * 90, -250, 17, 0, TAU); c.fill(); c.fillStyle = '#17171f'; rr(c, s * 70 - 19, -182, 38, 44, 8); c.fill(); }
+  // テールカウル
+  c.fillStyle = white; c.beginPath(); c.moveTo(-58, -232); c.quadraticCurveTo(-64, -300, 0, -306); c.quadraticCurveTo(64, -300, 58, -232); c.quadraticCurveTo(0, -214, -58, -232); c.closePath(); c.fill();
+  c.fillStyle = red; for (const s of [-1, 1]) { c.beginPath(); c.moveTo(s * 56, -238); c.quadraticCurveTo(s * 60, -286, s * 30, -300); c.lineTo(s * 22, -286); c.quadraticCurveTo(s * 40, -270, s * 38, -230); c.closePath(); c.fill(); }
+  c.fillStyle = o.lightOn ? '#ff3a30' : '#c22020'; rr(c, -26, -252, 52, 18, 6); c.fill();
+  c.fillStyle = '#f0a020'; for (const s of [-1, 1]) { c.beginPath(); c.arc(s * 74, -244, 8, 0, TAU); c.fill(); }
+  c.fillStyle = navy; rr(c, -40, -322, 80, 30, 12); c.fill();
+  // 腰・背中(前傾で短く見える)
+  c.fillStyle = suit; c.beginPath(); c.moveTo(-64, -300); c.quadraticCurveTo(-84, -372, -66, -420); c.quadraticCurveTo(0, -446, 66, -420); c.quadraticCurveTo(84, -372, 64, -300); c.closePath(); c.fill();
+  c.fillStyle = suit2; c.beginPath(); c.moveTo(-70, -410); c.quadraticCurveTo(0, -436, 70, -410); c.lineTo(72, -388); c.quadraticCurveTo(0, -412, -72, -388); c.closePath(); c.fill();
+  c.fillStyle = suit2; c.fillRect(-9, -404, 18, 100);
+  c.fillStyle = sh; c.beginPath(); c.moveTo(-64, -300); c.lineTo(64, -300); c.quadraticCurveTo(76, -330, 76, -350); c.quadraticCurveTo(0, -322, -76, -350); c.quadraticCurveTo(-76, -330, -64, -300); c.closePath(); c.fill();
+  // カウル上部とミラー・腕
+  c.fillStyle = white; c.beginPath(); c.moveTo(-96, -400); c.quadraticCurveTo(0, -452, 96, -400); c.lineTo(90, -384); c.quadraticCurveTo(0, -430, -90, -384); c.closePath(); c.fill();
+  for (const s of [-1, 1]) { c.strokeStyle = '#17171f'; c.lineWidth = 4; c.beginPath(); c.moveTo(s * 96, -404); c.lineTo(s * 122, -436); c.stroke(); c.fillStyle = white; c.beginPath(); c.ellipse(s * 128, -444, 22, 14, 0, 0, TAU); c.fill(); c.fillStyle = o.mirror || '#8fb0d0'; c.beginPath(); c.ellipse(s * 128, -444, 17, 10, 0, 0, TAU); c.fill();
+    c.strokeStyle = suit; c.lineWidth = 34; c.beginPath(); c.moveTo(s * 62, -410); c.lineTo(s * 96, -376); c.stroke(); c.fillStyle = suit2; c.beginPath(); c.arc(s * 98, -374, 15, 0, TAU); c.fill(); }
+  // ヘルメット
+  c.fillStyle = o.helmet || '#f7f4ec'; c.beginPath(); c.arc(0, -448, 46, 0, TAU); c.fill();
+  c.fillStyle = o.helA || '#2456a8'; c.beginPath(); c.moveTo(-14, -493); c.lineTo(14, -493); c.lineTo(20, -404); c.lineTo(-20, -404); c.closePath(); c.fill();
+  c.fillStyle = o.helB || '#f2c230'; c.fillRect(-6, -494, 12, 90);
+  c.fillStyle = 'rgba(255,255,255,.4)'; c.beginPath(); c.ellipse(-24, -470, 10, 6, -.7, 0, TAU); c.fill();
+  c.restore();
+}
