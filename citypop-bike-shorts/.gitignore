@@ -1,0 +1,5 @@
+# 生成物・再取得できる素材はコミットしない
+out/
+audio/*.wav
+audio/*.png
+fonts/*.ttf
