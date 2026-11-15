@@ -17,6 +17,9 @@ case $w in
   c1) VF="noise=alls=3:allf=t,format=yuv420p"; NAME=manga_coast_road;;
   c2) VF="noise=alls=6:allf=t,format=yuv420p"; NAME=crossing_in_the_rain;;
   c3) VF="noise=alls=5:allf=t,format=yuv420p"; NAME=morning_calm;;
+  e1) VF="noise=alls=4:allf=t,format=yuv420p"; NAME=tour_ocean_road;;
+  e2) VF="noise=alls=3:allf=t,format=yuv420p"; NAME=tour_mountain_lake;;
+  e3) VF="noise=alls=4:allf=t,format=yuv420p"; NAME=tour_highland;;
   d1) VF="noise=alls=4:allf=t,format=yuv420p"; NAME=endless_summer;;
   d2) VF="noise=alls=3:allf=t,format=yuv420p"; NAME=twilight_bay;;
   d3) VF="chromashift=cbh=-2:crh=2,gblur=sigma=0.7,noise=alls=9:allf=t,eq=saturation=1.08,format=yuv420p"; NAME=midnight_touge;;

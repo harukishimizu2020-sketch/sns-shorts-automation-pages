@@ -132,6 +132,7 @@ function drawBikeSide(c, o) {
     c.strokeStyle = jk; c.lineWidth = 27; c.beginPath(); c.moveTo(158, -290); c.lineTo(200, -236); c.stroke();
     c.lineWidth = 22; c.beginPath(); c.moveTo(200, -236); c.lineTo(236, -224); c.stroke();
     c.fillStyle = S('#3a2a20'); c.beginPath(); c.arc(240, -223, 12, 0, TAU); c.fill();
+    if (o.wave) { const wv = o.wave, ex = lerp(200, 196, wv), ey = lerp(-236, -350, wv), hx = lerp(236, 222, wv), hy = lerp(-224, -410, wv); c.strokeStyle = jk; c.lineWidth = 27; c.beginPath(); c.moveTo(158, -292); c.lineTo(ex, ey); c.stroke(); c.lineWidth = 22; c.beginPath(); c.moveTo(ex, ey); c.lineTo(hx, hy); c.stroke(); c.fillStyle = S('#3a2a20'); c.beginPath(); c.arc(hx, hy, 12, 0, TAU); c.fill(); if (wv > .5) { c.strokeStyle = S('#3a2a20'); c.lineWidth = 7; c.beginPath(); c.moveTo(hx, hy); c.lineTo(hx - 9, hy - 26); c.moveTo(hx, hy); c.lineTo(hx + 11, hy - 24); c.stroke(); } }
     if (!sil) { c.strokeStyle = 'rgba(255,255,255,.14)'; c.lineWidth = 4; c.beginPath(); c.moveTo(72, -250); c.quadraticCurveTo(96, -296, 134, -310); c.stroke(); }
     // ヘルメット(ジェット型)
     c.fillStyle = S(o.helmet || '#f2ede0'); c.beginPath(); c.arc(170, -338, 36, 0, TAU); c.fill();
@@ -320,6 +321,25 @@ function drawRacerSide(c, o) {
     c.strokeStyle = suit; c.lineWidth = 28; c.beginPath(); c.moveTo(182, -164); c.lineTo(118, -110); c.stroke();        // すね
     c.fillStyle = '#17171f'; c.beginPath(); c.moveTo(100, -122); c.lineTo(132, -112); c.lineTo(124, -94); c.lineTo(88, -98); c.closePath(); c.fill();
     c.fillStyle = suit2; c.beginPath(); c.arc(186, -166, 10, 0, TAU); c.fill();
+    if (o.upright) { // 体を起こした姿勢。wave=ヤエー(0..1), look=奥の景色を見る(0..1)
+      const wv = o.wave || 0, lk = o.look || 0;
+      c.fillStyle = suit; c.beginPath(); c.moveTo(62, -186); c.quadraticCurveTo(64, -262, 112, -308); c.quadraticCurveTo(150, -320, 178, -298); c.quadraticCurveTo(162, -236, 132, -176); c.closePath(); c.fill();
+      c.fillStyle = suit2; c.beginPath(); c.moveTo(64, -200); c.quadraticCurveTo(70, -262, 112, -302); c.lineTo(124, -294); c.quadraticCurveTo(88, -256, 82, -196); c.closePath(); c.fill();
+      c.fillStyle = sh; c.beginPath(); c.moveTo(132, -176); c.quadraticCurveTo(162, -236, 178, -298); c.lineTo(166, -292); c.quadraticCurveTo(150, -236, 120, -184); c.closePath(); c.fill();
+      const ex = lerp(206, 198, wv), ey = lerp(-246, -334, wv), hx = lerp(242, 226, wv), hy = lerp(-206, -392, wv);
+      c.strokeStyle = suit; c.lineWidth = 27; c.beginPath(); c.moveTo(156, -288); c.lineTo(ex, ey); c.stroke(); c.lineWidth = 22; c.beginPath(); c.moveTo(ex, ey); c.lineTo(hx, hy); c.stroke();
+      c.fillStyle = suit2; c.beginPath(); c.arc(ex, ey, 8, 0, TAU); c.fill(); c.fillStyle = '#17171f'; c.beginPath(); c.arc(hx, hy, 12, 0, TAU); c.fill();
+      if (wv > .5) { c.strokeStyle = '#17171f'; c.lineWidth = 7; c.beginPath(); c.moveTo(hx, hy); c.lineTo(hx - 9, hy - 26); c.moveTo(hx, hy); c.lineTo(hx + 11, hy - 24); c.stroke(); }
+      c.save(); c.translate(172, -334); c.rotate(-.04 - lk * .1);
+      c.fillStyle = hel; c.beginPath(); c.moveTo(-34, 4); c.quadraticCurveTo(-36, -34, 0, -36); c.quadraticCurveTo(36, -34, 38, 2); c.quadraticCurveTo(36, 30, 10, 32); c.lineTo(-22, 30); c.quadraticCurveTo(-34, 22, -34, 4); c.closePath(); c.fill();
+      c.fillStyle = o.helA || '#2456a8'; c.beginPath(); c.moveTo(-34, -4); c.quadraticCurveTo(-30, -30, -4, -35); c.lineTo(2, -24); c.quadraticCurveTo(-18, -18, -24, 4); c.closePath(); c.fill();
+      c.fillStyle = o.helB || '#f2c230'; c.beginPath(); c.moveTo(-22, 6); c.quadraticCurveTo(-16, -14, 4, -20); c.lineTo(8, -13); c.quadraticCurveTo(-8, -8, -13, 8); c.closePath(); c.fill();
+      const vx = (x) => 37 - (37 - x) * (1 - lk * .82);
+      c.fillStyle = '#141826'; c.beginPath(); c.moveTo(vx(6), -14); c.quadraticCurveTo(vx(30), -18, 37, -2); c.quadraticCurveTo(vx(34), 8, vx(12), 8); c.quadraticCurveTo(vx(4), 0, vx(6), -14); c.closePath(); c.fill();
+      if (lk < .5) { c.fillStyle = 'rgba(140,220,255,.55)'; c.beginPath(); c.moveTo(vx(14), -10); c.quadraticCurveTo(vx(26), -13, vx(32), -5); c.lineTo(vx(20), -3); c.closePath(); c.fill(); }
+      c.fillStyle = sh; c.beginPath(); c.moveTo(-22, 30); c.lineTo(10, 32); c.quadraticCurveTo(36, 30, 38, 2); c.quadraticCurveTo(30, 22, 8, 24); c.lineTo(-26, 22); c.closePath(); c.fill();
+      c.restore();
+    } else {
     c.fillStyle = suit; c.beginPath(); c.moveTo(66, -184); c.quadraticCurveTo(78, -242, 150, -262); c.quadraticCurveTo(196, -268, 214, -244); c.quadraticCurveTo(176, -214, 128, -176); c.closePath(); c.fill();   // 胴
     c.fillStyle = suit2; c.beginPath(); c.moveTo(70, -196); c.quadraticCurveTo(84, -238, 140, -258); c.lineTo(146, -246); c.quadraticCurveTo(100, -228, 86, -190); c.closePath(); c.fill();
     c.fillStyle = sh; c.beginPath(); c.moveTo(66, -184); c.lineTo(128, -176); c.quadraticCurveTo(176, -214, 214, -244); c.lineTo(206, -236); c.quadraticCurveTo(160, -206, 124, -188); c.closePath(); c.fill();
@@ -333,7 +353,8 @@ function drawRacerSide(c, o) {
     c.fillStyle = '#141826'; c.beginPath(); c.moveTo(6, -14); c.quadraticCurveTo(30, -18, 37, -2); c.quadraticCurveTo(34, 8, 12, 8); c.quadraticCurveTo(4, 0, 6, -14); c.closePath(); c.fill();
     c.fillStyle = 'rgba(140,220,255,.55)'; c.beginPath(); c.moveTo(14, -10); c.quadraticCurveTo(26, -13, 32, -5); c.lineTo(20, -3); c.closePath(); c.fill();
     c.fillStyle = sh; c.beginPath(); c.moveTo(-22, 30); c.lineTo(10, 32); c.quadraticCurveTo(36, 30, 38, 2); c.quadraticCurveTo(30, 22, 8, 24); c.lineTo(-26, 22); c.closePath(); c.fill();
-    c.restore(); c.restore();
+    c.restore(); }
+    c.restore();
   }
   c.restore();
 }

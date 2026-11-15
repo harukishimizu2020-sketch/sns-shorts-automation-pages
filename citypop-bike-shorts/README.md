@@ -17,6 +17,11 @@
 - D2「Twilight Bay」: ピンクと紫の線画スカイライン+ポップアート (`d2.js`, BGM 120BPM)
 - D3「真夜中の峠」: 80年代セルアニメ風の夜の峠 (`d3.js`, BGM 128BPM)
 
+ゆっくり走るツーリング3本(第4弾。体を起こして走り、景色を眺め、対向ライダーとヤエーを交わす):
+
+- E1「OCEAN ROAD」海岸線 / E2「Mountain Lake」山と湖 / E3「HIGHLAND」高原 (いずれも `tour.js`、`?v=e1|e2|e3` で切替)
+- BGM は既存曲の流用(e1=track_d1, e2=track_b, e3=track_c3 を `audio/track_e*.wav` へコピーして使う)
+
 ## 再生成手順
 
 必要なもの: Node.js + Playwright(Chromium)、ffmpeg、Python3(numpy, scipy)
@@ -34,6 +39,8 @@ python3 audio/music3.py       # 第3弾のBGM(track_d1〜d3.wav)
 ./build.sh d1 4               # out/endless_summer.mp4
 ./build.sh d2 4               # out/twilight_bay.mp4
 ./build.sh d3 4               # out/midnight_touge.mp4
+cp audio/track_d1.wav audio/track_e1.wav; cp audio/track_b.wav audio/track_e2.wav; cp audio/track_c3.wav audio/track_e3.wav
+./build.sh e1 4               # out/tour_ocean_road.mp4 (e2, e3 も同様)
 ./sheet.sh a check 3.5 12 30 38   # 任意の秒の静止画を並べて確認
 ```
 
